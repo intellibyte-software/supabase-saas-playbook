@@ -1,0 +1,28 @@
+# Supabase SaaS Playbook
+
+> A domain-agnostic blueprint for building production-ready SaaS applications with Supabase, Vercel, and React. Supports multi-tenant and single-tenant architectures.
+
+This repository contains documentation, templates, and AI agent skills for scaffolding new Supabase-based SaaS projects.
+
+## Core Documents
+
+- [AI Agent Playbook](ai-agent-playbook.md): 16-phase step-by-step guide to scaffold a new project from scratch. Covers monorepo setup, Supabase config, edge functions, AI pipeline, CI/CD, observability, and more.
+- [Architecture](architecture.md): Technical architecture reference covering data models (multi-tenant and single-tenant), AI detection pipeline, frontend patterns, database design, CI/CD, and observability with New Relic.
+- [Executive Summary](executive-summary.md): Non-technical overview of system capabilities, technology choices, and deployment model.
+
+## Templates (copy into new projects)
+
+- [templates/CLAUDE.md](templates/CLAUDE.md): Claude Code agent instructions — local stack setup, migrations, baselining, E2E tests, AI analysis architecture, code quality rules.
+- [templates/AGENTS.md](templates/AGENTS.md): GitHub Copilot / AI agent instructions — project structure, dev commands, testing, migration workflow.
+- [templates/ci.yml](templates/ci.yml): GitHub Actions CI/CD workflow — validate, Supabase deploy, Vercel production deploy with Nx affected detection.
+
+## Skills (AI agent specialized knowledge)
+
+- [skills/supabase-database/SKILL.md](skills/supabase-database/SKILL.md): Database migrations, baselining, RLS patterns for multi-tenant and single-tenant, query best practices.
+- [skills/supabase-edge-functions/SKILL.md](skills/supabase-edge-functions/SKILL.md): Edge function development with Deno/Hono, deployment gates, CORS, long-running functions.
+- [skills/supabase-postgres-best-practices/SKILL.md](skills/supabase-postgres-best-practices/SKILL.md): Postgres performance — indexes, RLS optimization, connection pooling, batch inserts, pagination.
+- [skills/ai-detection-process/SKILL.md](skills/ai-detection-process/SKILL.md): AI vision detection pipeline using PGMQ queues, pg_cron, OpenAI Vision, and Realtime broadcasts.
+- [skills/edge-function-debugging/SKILL.md](skills/edge-function-debugging/SKILL.md): Local debugging with background processes, Chrome DevTools, and testing against remote Supabase.
+- [skills/pwa-e2e-testing/SKILL.md](skills/pwa-e2e-testing/SKILL.md): Playwright E2E testing for mobile-first PWAs — pre-auth, timing, photo uploads, parallel isolation.
+- [skills/skill-creator/SKILL.md](skills/skill-creator/SKILL.md): How to create new AI agent skills — anatomy, progressive disclosure, 6-step process.
+- [skills/vercel-composition-patterns/SKILL.md](skills/vercel-composition-patterns/SKILL.md): React composition patterns — compound components, explicit variants, state management, React 19 APIs.
