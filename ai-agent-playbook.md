@@ -366,6 +366,58 @@ allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
 
 Use when many organizations share one database. Every business table has a `tenant_id`.
 
+```mermaid
+erDiagram
+    customers ||--o{ tenants : has
+    tenants ||--o{ facilities : has
+    tenants ||--o{ user_tenant_roles : has
+    tenants ||--o{ orders : has
+    app_users ||--|| auth_users : "linked via auth_user_id"
+    app_users ||--o{ user_tenant_roles : has
+    app_users ||--o{ orders : created
+    facilities ||--o{ orders : contains
+
+    customers {
+        uuid id PK
+        text name
+        timestamptz created_at
+    }
+    tenants {
+        uuid id PK
+        uuid customer_id FK
+        text name
+        timestamptz created_at
+    }
+    facilities {
+        uuid id PK
+        uuid tenant_id FK
+        text code
+        text name
+        timestamptz created_at
+    }
+    app_users {
+        uuid id PK
+        uuid auth_user_id FK
+        text email
+        text display_name
+        timestamptz created_at
+    }
+    user_tenant_roles {
+        uuid id PK
+        uuid user_id FK
+        uuid tenant_id FK
+        text role
+    }
+    orders {
+        uuid id PK
+        uuid tenant_id FK
+        uuid facility_id FK
+        uuid created_by FK
+        text status
+        timestamptz created_at
+    }
+```
+
 ```sql
 -- Core hierarchy
 CREATE TABLE customers (
@@ -456,6 +508,32 @@ $$ LANGUAGE sql STABLE SECURITY DEFINER;
 #### Single-Tenant Schema
 
 Use when each deployment serves one organization. Simpler hierarchy, no `tenant_id`.
+
+```mermaid
+erDiagram
+    auth_users ||--|| profiles : "id = id"
+    auth_users ||--o{ orders : created
+    organizations ||--o{ orders : contains
+
+    organizations {
+        uuid id PK
+        text name
+        timestamptz created_at
+    }
+    profiles {
+        uuid id PK
+        text email
+        text display_name
+        text role
+        timestamptz created_at
+    }
+    orders {
+        uuid id PK
+        uuid created_by FK
+        text status
+        timestamptz created_at
+    }
+```
 
 ```sql
 -- Simpler hierarchy
@@ -889,10 +967,11 @@ gh secret set SUPABASE_PROJECT_REF --body "<ref>"
 
 Use the template from `docs/playbook/templates/ci.yml`. Structure:
 
-```
-validate → supabase-deploy → production-portal
-                           ↗
-                          → production-app
+```mermaid
+graph LR
+    validate --> supabase-deploy
+    supabase-deploy --> production-portal
+    supabase-deploy --> production-app
 ```
 
 **Key points:**

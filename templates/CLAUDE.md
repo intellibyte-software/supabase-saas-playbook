@@ -174,10 +174,11 @@ The `000000` time ensures it sorts before any migrations created that day.
 
 Supabase **must deploy before frontends**. The CI job graph enforces this:
 
-```
-validate → supabase-deploy → production-portal
-                           ↗
-                          → production-app
+```mermaid
+graph LR
+    validate --> supabase-deploy
+    supabase-deploy --> production-portal
+    supabase-deploy --> production-app
 ```
 
 ### CI Commands (in `supabase-deploy` job)
@@ -295,33 +296,16 @@ deno test --allow-net tests/hello-world-test.ts
 
 ### How It Works (End-to-End)
 
-```
-Photo INSERT into DB
-       ↓
-  DB Trigger fires
-  (AFTER INSERT)
-       ↓
-  queue_*_ai_job()
-  Enqueues to PGMQ
-       ↓
-  pg_cron job polls queue
-  (Every 10–30 seconds)
-       ↓
-  process_*_ai_queue_message()
-  Invokes edge function via pg_net
-       ↓
-  Edge function fetches photo
-  from Supabase Storage
-       ↓
-  OpenAI Vision API
-  (gpt-4o-mini / gpt-4o)
-       ↓
-  apply_*_detection_results() RPC
-  Writes result + updates photo row
-       ↓
-  Supabase Realtime broadcast
-  tenant:{tenantId}:{detection-type}
-  status: processing | completed | failed
+```mermaid
+flowchart TD
+    A["Photo INSERT into DB"] --> B["DB Trigger fires<br/>(AFTER INSERT)"]
+    B --> C["queue_*_ai_job()<br/>Enqueues to PGMQ"]
+    C --> D["pg_cron job polls queue<br/>(Every 10–30 seconds)"]
+    D --> E["process_*_ai_queue_message()<br/>Invokes edge function via pg_net"]
+    E --> F["Edge function fetches photo<br/>from Supabase Storage"]
+    F --> G["OpenAI Vision API<br/>(gpt-4o-mini / gpt-4o)"]
+    G --> H["apply_*_detection_results() RPC<br/>Writes result + updates photo row"]
+    H --> I["Supabase Realtime broadcast<br/>tenant:{tenantId}:{detection-type}<br/>status: processing | completed | failed"]
 ```
 
 ### Queue Tables

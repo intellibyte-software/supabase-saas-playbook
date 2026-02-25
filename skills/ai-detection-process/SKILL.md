@@ -9,14 +9,12 @@ Add new AI-powered image detection following the established queue-based async a
 
 ## Architecture Flow
 
-```
-Photo Insert → Trigger → PGMQ Queue → Cron Job → Edge Function → OpenAI Vision
-                                                       ↓
-                                              Apply Results RPC
-                                                       ↓
-                                            Update Photo + Audit Log
-                                                       ↓
-                                            Realtime Status Broadcast
+```mermaid
+flowchart LR
+    A["Photo Insert"] --> B["Trigger"] --> C["PGMQ Queue"] --> D["Cron Job"] --> E["Edge Function"] --> F["OpenAI Vision"]
+    F --> G["Apply Results RPC"]
+    G --> H["Update Photo + Audit Log"]
+    H --> I["Realtime Status Broadcast"]
 ```
 
 ## Implementation Checklist

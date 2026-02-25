@@ -18,43 +18,31 @@ The platform consists of two user-facing applications backed by a shared Supabas
 
 Both apps communicate with Supabase using the official JavaScript SDK. There is no dedicated API server, Express router, or GraphQL schema. Authorization is enforced at the database layer via PostgreSQL Row-Level Security (RLS). Edge functions handle server-side logic that cannot run in the browser (AI calls, file proxies, PDF generation).
 
-```
-+-----------------------------------------------------------------------+
-|                              CLIENTS                                  |
-|                                                                       |
-|   +------------------------+       +------------------------+         |
-|   |   Admin Portal (SPA)   |       |   Mobile App (SPA)     |         |
-|   |   Desktop-first        |       |   Mobile-first         |         |
-|   |   AG Grid / Reports    |       |   Photo / Workflows    |         |
-|   |   Port 5174            |       |   Port 5173            |         |
-|   +-----------+------------+       +-----------+------------+         |
-+---------------|---------------------------------|---------------------+
-                |  HTTPS / Supabase JS SDK        |
-                v                                 v
-+-----------------------------------------------------------------------+
-|                           SUPABASE                                    |
-|                                                                       |
-|   +--------------+   +----------+   +-----------------------------+   |
-|   |  PostgreSQL   |   |   Auth   |   |  Edge Functions (Deno)      |   |
-|   |  (v17)        |   |  (JWT +  |   |  - Business logic           |   |
-|   |              |   |   RLS)   |   |  - AI Vision calls          |   |
-|   +--------------+   +----------+   |  - File upload/download     |   |
-|                                     +-----------------------------+   |
-|   +--------------+   +----------+   +-----------------------------+   |
-|   |   Storage    |   | Realtime |   |  PGMQ (Message Queues)      |   |
-|   |  (S3-compat  |   |  (WS     |   |  - Async AI job queues      |   |
-|   |   buckets)   |   |  pubsub) |   |  - Dead-letter queues       |   |
-|   +--------------+   +----------+   +-----------------------------+   |
-+-----------------------------------------------------------------------+
-                |
-                v
-+-----------------------------------------------------------------------+
-|                      EXTERNAL SERVICES                                |
-|   +---------------------+   +---------------------+                  |
-|   |  OpenAI API          |   |  Google Maps API     |                 |
-|   |  (Vision / Chat)     |   |  (Portal maps)       |                 |
-|   +---------------------+   +---------------------+                  |
-+-----------------------------------------------------------------------+
+```mermaid
+graph TB
+    subgraph Clients["CLIENTS"]
+        Portal["Admin Portal · SPA<br/>Desktop-first · Port 5174<br/>AG Grid / Reports"]
+        Mobile["Mobile App · SPA<br/>Mobile-first · Port 5173<br/>Photo / Workflows"]
+    end
+
+    subgraph Supabase["SUPABASE"]
+        Postgres["PostgreSQL v17"]
+        Auth["Auth<br/>JWT + RLS"]
+        EdgeFn["Edge Functions · Deno<br/>Business logic<br/>AI Vision calls<br/>File upload/download"]
+        Storage["Storage<br/>S3-compat buckets"]
+        Realtime["Realtime<br/>WS pubsub"]
+        PGMQ["PGMQ · Message Queues<br/>Async AI job queues<br/>Dead-letter queues"]
+    end
+
+    subgraph External["EXTERNAL SERVICES"]
+        OpenAI["OpenAI API<br/>Vision / Chat"]
+        GoogleMaps["Google Maps API<br/>Portal maps"]
+    end
+
+    Portal -- "HTTPS / Supabase JS SDK" --> Supabase
+    Mobile -- "HTTPS / Supabase JS SDK" --> Supabase
+    EdgeFn --> OpenAI
+    Portal --> GoogleMaps
 ```
 
 ### Key architectural properties

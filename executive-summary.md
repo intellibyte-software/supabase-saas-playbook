@@ -150,22 +150,29 @@ The platform is built on three cloud services that integrate with each other aut
 
 ### How the Three Platforms Connect
 
-```
-GitHub                    Supabase                   Vercel
-(code + automation)       (backend + database)       (frontend hosting)
-        |                        |                        |
-        |--- PR opened -------->|--- creates preview DB   |
-        |                        |   (isolated copy)       |
-        |--- PR opened ---------------------------------->|--- deploys preview apps
-        |                        |                        |   (connected to preview DB)
-        |                                                 |
-        |--- PR merged -------->|--- applies DB changes   |
-        |                        |   to production         |
-        |--- PR merged ---------------------------------->|--- deploys to production
-        |                        |                        |   (global CDN)
-        |                                                 |
-        |--- PR closed -------->|--- deletes preview DB   |
-        |--- PR closed ---------------------------------->|--- removes preview apps
+```mermaid
+sequenceDiagram
+    participant GH as GitHub<br/>(code + automation)
+    participant SB as Supabase<br/>(backend + database)
+    participant VR as Vercel<br/>(frontend hosting)
+
+    Note over GH,VR: PR Opened
+    GH->>SB: PR opened
+    SB-->>SB: Creates preview DB (isolated copy)
+    GH->>VR: PR opened
+    VR-->>VR: Deploys preview apps (connected to preview DB)
+
+    Note over GH,VR: PR Merged
+    GH->>SB: PR merged
+    SB-->>SB: Applies DB changes to production
+    GH->>VR: PR merged
+    VR-->>VR: Deploys to production (global CDN)
+
+    Note over GH,VR: PR Closed
+    GH->>SB: PR closed
+    SB-->>SB: Deletes preview DB
+    GH->>VR: PR closed
+    VR-->>VR: Removes preview apps
 ```
 
 ### GitHub -- Code and Automation
@@ -202,12 +209,12 @@ The preview apps are connected to the preview database. They function exactly li
 
 ### What This Looks Like
 
-```
-Pull Request #42: "Add new reporting dashboard"
-
-  Preview Database:   Isolated copy with test data
-  Admin Portal:       https://portal-pr-42.example.app
-  Mobile App:         https://mobile-pr-42.example.app
+```mermaid
+graph LR
+    PR["Pull Request #42<br/>&quot;Add new reporting dashboard&quot;"]
+    PR --> DB["Preview Database<br/>Isolated copy with test data"]
+    PR --> Portal["Admin Portal<br/>portal-pr-42.example.app"]
+    PR --> App["Mobile App<br/>mobile-pr-42.example.app"]
 ```
 
 ### Why This Matters
@@ -269,48 +276,21 @@ Every production deployment corresponds to a specific version of the code. Rolli
 
 ### The Complete Path from Code to Production
 
-```
-Developer writes code on a feature branch
-    |
-    v
-Developer opens a pull request on GitHub
-    |
-    +---> GitHub Actions: lint code, run unit tests
-    |
-    +---> Supabase: create isolated preview database
-    |         apply all database schema changes
-    |         load test data
-    |
-    +---> Vercel: deploy preview Admin Portal
-    |              deploy preview Mobile App
-    |              connect previews to preview database
-    |
-    v
-Team reviews code, tests preview, approves pull request
-    |
-    v
-Developer merges pull request to main branch
-    |
-    v
-GitHub Actions runs the production pipeline (in strict order):
-    |
-    |  Step 1: Validate
-    |    - Lint entire codebase
-    |    - Run all unit tests
-    |
-    |  Step 2: Deploy backend (must complete before Step 3)
-    |    - Apply database migrations to production
-    |    - Deploy serverless functions to production
-    |
-    |  Step 3: Deploy frontends (runs after Step 2 succeeds)
-    |    - Deploy Admin Portal to Vercel (global CDN)
-    |    - Deploy Mobile App to Vercel (global CDN)
-    |
-    v
-Production is updated. Zero downtime.
-    |
-    v
-Pull request closed: all preview environments deleted automatically
+```mermaid
+flowchart TD
+    A["Developer writes code on a feature branch"] --> B["Developer opens a pull request on GitHub"]
+    B --> C["GitHub Actions:<br/>lint code, run unit tests"]
+    B --> D["Supabase:<br/>create isolated preview database<br/>apply schema changes, load test data"]
+    B --> E["Vercel:<br/>deploy preview Admin Portal<br/>deploy preview Mobile App<br/>connect to preview database"]
+    C --> F["Team reviews code, tests preview, approves PR"]
+    D --> F
+    E --> F
+    F --> G["Developer merges pull request to main branch"]
+    G --> H["Step 1 · Validate<br/>Lint entire codebase<br/>Run all unit tests"]
+    H --> I["Step 2 · Deploy Backend<br/>Apply database migrations to production<br/>Deploy serverless functions to production"]
+    I --> J["Step 3 · Deploy Frontends<br/>Deploy Admin Portal to Vercel · global CDN<br/>Deploy Mobile App to Vercel · global CDN"]
+    J --> K["Production is updated · Zero downtime"]
+    K --> L["PR closed: all preview environments deleted automatically"]
 ```
 
 ### Key Properties
